@@ -6,6 +6,12 @@ use std::{
 };
 
 #[derive(Debug)]
+struct Response {
+    content: Option<String>,
+    code: u16,
+}
+
+#[derive(Debug)]
 struct Request {
     path: String,
     method: String,
@@ -26,6 +32,12 @@ impl Request {
             headers,
             body,
         }
+    }
+}
+
+impl Response {
+    fn new(content: Option<String>, code: u16) -> Self {
+        Response { content, code }
     }
 }
 
@@ -120,4 +132,18 @@ fn build_method_route(first: &str) -> Option<(String, String)> {
     let method = vec_line.get(0).map(|s| s.to_string())?;
     let route = vec_line.get(1).map(|s| s.to_string())?;
     Some((method, route))
+}
+
+fn get_route_and_execute(req: Request) -> Option<Response> {
+    if req.path == "/list" && req.method == "GET" {
+        return Some(Response::new(None, 404));
+    } else if req.path == "/get/{key}" && req.method == "GET" {
+        return Some(Response::new(None, 404));
+    } else if req.path == "/set" && req.method == "POST" {
+        return Some(Response::new(None, 404));
+    } else if req.path == "/delete/{key}" && req.method == "DELETE" {
+        return Some(Response::new(None, 404));
+    } else {
+        return Some(Response::new(None, 404));
+    }
 }
