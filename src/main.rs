@@ -39,6 +39,28 @@ impl Response {
     fn new(content: Option<String>, code: u16) -> Self {
         Response { content, code }
     }
+    fn format_response(&self) -> String {
+        let body = self.content.as_deref().unwrap_or("");
+        let status_code = self.get_status_code();
+        let str = format!(
+            "HTTP/1.1 {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{}",
+            status_code,
+            body.len(),
+            body
+        );
+        str
+    }
+
+    fn get_status_code(&self) -> &str {
+        match self.code {
+            200 => "200 OK",
+            201 => "201 Created",
+            400 => "400 Bad Request",
+            404 => "404 Not Found",
+            500 => "500 Internal Server Error",
+            _ => "500 Internal Server Error",
+        }
+    }
 }
 
 fn main() {
@@ -67,10 +89,28 @@ fn handle_connection(mut stream: TcpStream) {
     match stream.read(&mut buffer) {
         Ok(size) => {
             request.push_str(String::from_utf8_lossy(&buffer[..size]).as_ref());
-            let parsed_request = build_request(&request).or_else(|| {
-                println!("An error has occurred while processing the request...");
-                None
-            });
+            let parsed_request = match build_request(&request) {
+                Some(req) => req,
+                None => {
+                    println!("An error has occurred while constructing the request...");
+                    let response = Response::new(None, 500).format_response();
+                    stream.write_all(response.as_bytes()).unwrap();
+                    stream.flush().unwrap();
+                    return;
+                }
+            };
+            let response = match get_route_and_execute(parsed_request) {
+                Some(res) => res,
+                None => {
+                    println!("An error has occurred while executing the request...");
+                    let response = Response::new(None, 500).format_response();
+                    stream.write_all(response.as_bytes()).unwrap();
+                    stream.flush().unwrap();
+                    return;
+                }
+            };
+            stream.write_all(response.as_bytes()).unwrap();
+            stream.flush().unwrap();
         }
         Err(err) => {
             println!(
@@ -134,16 +174,16 @@ fn build_method_route(first: &str) -> Option<(String, String)> {
     Some((method, route))
 }
 
-fn get_route_and_execute(req: Request) -> Option<Response> {
+fn get_route_and_execute(req: Request) -> Option<String> {
     if req.path == "/list" && req.method == "GET" {
-        return Some(Response::new(None, 404));
+        return Some(Response::new(None, 404).format_response());
     } else if req.path == "/get/{key}" && req.method == "GET" {
-        return Some(Response::new(None, 404));
+        return Some(Response::new(None, 404).format_response());
     } else if req.path == "/set" && req.method == "POST" {
-        return Some(Response::new(None, 404));
+        return Some(Response::new(None, 404).format_response());
     } else if req.path == "/delete/{key}" && req.method == "DELETE" {
-        return Some(Response::new(None, 404));
+        return Some(Response::new(None, 404).format_response());
     } else {
-        return Some(Response::new(None, 404));
+        return Some(Response::new(None, 404).format_response());
     }
 }
