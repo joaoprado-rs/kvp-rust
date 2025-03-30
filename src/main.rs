@@ -1,9 +1,24 @@
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     hash::Hash,
     io::{BufRead, BufReader, Lines, Read, Write},
     net::{TcpListener, TcpStream},
 };
+
+struct Error {
+    reason: String
+}
+
+struct Errors {
+    
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct RequestSetKVP {
+    key: String,
+    value: String,
+}
 
 #[derive(Debug)]
 struct Response {
@@ -176,7 +191,7 @@ fn build_method_route(first: &str) -> Option<(String, String)> {
 
 fn get_route_and_execute(req: Request) -> Option<String> {
     if req.path == "/list" && req.method == "GET" {
-        return Some(Response::new(None, 404).format_response());
+        return Some(Response::new(Some("{\"valor\": \"1\"}".to_string()), 200).format_response());
     } else if req.path == "/get/{key}" && req.method == "GET" {
         return Some(Response::new(None, 404).format_response());
     } else if req.path == "/set" && req.method == "POST" {
@@ -186,4 +201,13 @@ fn get_route_and_execute(req: Request) -> Option<String> {
     } else {
         return Some(Response::new(None, 404).format_response());
     }
+}
+
+fn set_pair(req: Request) -> String {
+    let parsed_request = match serde_json::from_str(&req.body.unwrap().as_str()) {
+        Ok(parsed_request) => parsed_request,
+        Err(err) => {
+            return Response::new(Some(r#"{"errors: {"data": }"}".to_string()), 400).format_response()
+        }
+    };
 }
