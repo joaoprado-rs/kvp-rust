@@ -1,29 +1,35 @@
-use crate::state::State;
+use std::{
+    io::Read,
+    net::{TcpListener, TcpStream},
+    sync::{Arc, Mutex},
+};
 
-struct Server {
+use crate::server::state::State;
+
+pub struct Server {
     host: String,
     port: String,
-    kvp: Arc<Mutex<State>>
+    kvp: Arc<Mutex<State>>,
 }
 
 impl Server {
-    fn new(host: &str, port: &str) -> Self {
+    pub fn new(host: &str, port: &str) -> Self {
         Server {
-            host.to_string(),
-            port.to_string(),
+            host: host.to_string(),
+            port: port.to_string(),
             kvp: Arc::new(Mutex::new(State::new())),
         }
     }
 
-    fn run(&self) {
+    pub fn run(&self) {
         let address = format!("{}:{}", self.host, self.port);
-        let listener = TcpListener::bind(address).unwrap();
+        let listener = TcpListener::bind(&address).unwrap();
         println!("Server listening on {}", address);
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
                     println!("Connection stablished successfully");
-                    self.handle_connection(stream);
+                    Self::handle_connection(stream);
                 }
                 Err(err) => {
                     println!(
@@ -33,13 +39,12 @@ impl Server {
                 }
             }
         }
-
     }
 
     fn handle_connection(mut stream: TcpStream) {
         let mut buffer = [0; 1024];
         let mut request = String::new();
-    
+
         match stream.read(&mut buffer) {
             Ok(size) => {
                 request.push_str(String::from_utf8_lossy(&buffer[..size]).as_ref());

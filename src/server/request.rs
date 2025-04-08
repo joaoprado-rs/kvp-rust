@@ -1,4 +1,4 @@
-struct Request {
+pub struct Request {
     path: String,
     method: String,
     headers: HashMap<String, String>,
@@ -20,7 +20,7 @@ impl Request {
         }
     }
 
-    fn build_request(request_string: &String) -> Option<Request> {
+    pub fn build_request(request_string: &String) -> Option<Request> {
         let mut lines = request_strin.lines();
         let first = lines.next()?;
         let (method, path) = build_method_route(first)?;
@@ -37,7 +37,7 @@ impl Request {
                 headers.insert(key.to_string(), value.to_string());
             } else {
                 println!(
-                    "Skiping line because does not match the pattern: '{}'",
+                    "Skipping line because does not match the pattern: '{}'",
                     line.to_string()
                 );
             }
@@ -62,7 +62,13 @@ impl Request {
         } else {
             None
         };
-
         Some(Request::new(path, method, headers, body))
+    }
+
+    fn build_method_route(first: &str) -> Option<(String, String)> {
+        let vec_line: Vec<&str> = first.split_whitespace().collect();
+        let method = vec_line.get(0).map(|s| s.to_string())?;
+        let route = vec_line.get(1).map(|s| s.to_string())?;
+        Some((method, route))
     }
 }

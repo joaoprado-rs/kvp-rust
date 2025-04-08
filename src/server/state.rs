@@ -1,19 +1,21 @@
+use std::collections::HashMap;
+
 pub struct State {
     kvp: HashMap<String, String>,
 }
 
 impl State {
-    fn new() -> Self {
+    pub fn new() -> Self {
         State {
             kvp: HashMap::new(),
         }
     }
 
     fn set(&mut self, key: String, value: String) -> Option<String> {
-        self.kvp.set(key, value)
+        self.kvp.insert(key, value)
     }
 
-    fn get(&self, key: String) -> Option<String> {
-        self.get(key)
+    fn get(&self, key: &str) -> Option<String> {
+        self.kvp.get(key).cloned()
     }
 }
