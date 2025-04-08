@@ -1,10 +1,11 @@
 use std::{
-    io::Read,
+    io::{Read, Write},
     net::{TcpListener, TcpStream},
     sync::{Arc, Mutex},
 };
 
-use crate::server::state::State;
+use super::{handler::get_route_and_execute, request::Request};
+use crate::server::{response::Response, state::State};
 
 pub struct Server {
     host: String,
@@ -48,7 +49,7 @@ impl Server {
         match stream.read(&mut buffer) {
             Ok(size) => {
                 request.push_str(String::from_utf8_lossy(&buffer[..size]).as_ref());
-                let parsed_request = match build_request(&request) {
+                let parsed_request = match Request::build_request(&request) {
                     Some(req) => req,
                     None => {
                         println!("An error has occurred while constructing the request...");

@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 pub struct Request {
-    path: String,
-    method: String,
-    headers: HashMap<String, String>,
-    body: Option<String>,
+    pub path: String,
+    pub method: String,
+    pub headers: HashMap<String, String>,
+    pub body: Option<String>,
 }
 
 impl Request {
@@ -21,9 +23,9 @@ impl Request {
     }
 
     pub fn build_request(request_string: &String) -> Option<Request> {
-        let mut lines = request_strin.lines();
+        let mut lines = request_string.lines();
         let first = lines.next()?;
-        let (method, path) = build_method_route(first)?;
+        let (method, path) = Self::build_method_route(first)?;
         let mut headers: HashMap<String, String> = HashMap::new();
         for line in lines.by_ref() {
             if line.is_empty() {
