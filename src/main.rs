@@ -1,3 +1,4 @@
+use core::error;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -6,12 +7,21 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 
+struct State {
+    store: HashMap<String, String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Data {
+    message: String,
+}
+#[derive(Serialize, Deserialize, Debug)]
 struct Error {
-    reason: String
+    reason: String,
 }
 
 struct Errors {
-    
+    errors: Vec<Error>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -76,6 +86,39 @@ impl Response {
             _ => "500 Internal Server Error",
         }
     }
+}
+
+impl Error {
+    fn new(reason: String) -> Self {
+        Error { reason }
+    }
+    fn to_string(&self) -> String {
+        let str = serde_json::to_string(&self);
+        str.unwrap()
+    }
+}
+
+impl Data {
+    fn new(message: String) -> Self {
+        Data { message }
+    }
+    fn to_string(&self) -> String {
+        return serde_json::to_string(&self).unwrap();
+    }
+}
+
+impl State {
+    fn new() -> Self {
+        State {
+            store: HashMap::new(),
+        }
+    }
+
+    fn set(&mut self, key: String, value: String) -> Option<String> {
+        self.store.insert(key, value)
+    }
+    
+    fn get
 }
 
 fn main() {
@@ -195,7 +238,7 @@ fn get_route_and_execute(req: Request) -> Option<String> {
     } else if req.path == "/get/{key}" && req.method == "GET" {
         return Some(Response::new(None, 404).format_response());
     } else if req.path == "/set" && req.method == "POST" {
-        return Some(Response::new(None, 404).format_response());
+        return set_pair(req);
     } else if req.path == "/delete/{key}" && req.method == "DELETE" {
         return Some(Response::new(None, 404).format_response());
     } else {
@@ -203,11 +246,16 @@ fn get_route_and_execute(req: Request) -> Option<String> {
     }
 }
 
-fn set_pair(req: Request) -> String {
+fn set_pair(req: Request) -> Option<String> {
     let parsed_request = match serde_json::from_str(&req.body.unwrap().as_str()) {
         Ok(parsed_request) => parsed_request,
         Err(err) => {
-            return Response::new(Some(r#"{"errors: {"data": }"}".to_string()), 400).format_response()
+            let error_message =
+                format!("Failed to set the KVP. The error is '{}'", err.to_string());
+            let error = Error::new(error_message);
+            return Some(Response::new(Some(error.to_string()), 400).format_response());
         }
     };
+    let data = Data::new("The item was inserted successfully.".to_string());
+    Some(Response::new(Some(data.to_string()), 201).format_response())
 }
