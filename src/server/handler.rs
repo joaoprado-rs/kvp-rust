@@ -4,7 +4,7 @@ use std::{
 };
 
 use super::{
-    request::Request,
+    request::{self, Request},
     response::{Data, Error, Response},
     schema::KeyValue,
     state::State,
@@ -12,7 +12,7 @@ use super::{
 
 pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<String> {
     if req.path == "/list" && req.method == "GET" {
-        return Some(Response::new(Some("{\"valor\": \"1\"}".to_string()), 200).format_response());
+        return list_kvp(req, state);
     } else if req.path == "/get/{key}" && req.method == "GET" {
         return Some(Response::new(None, 404).format_response());
     } else if req.path == "/set" && req.method == "POST" {
@@ -24,6 +24,18 @@ pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<S
     }
 }
 
+fn list_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
+    let mut state_guard = state.lock().ok()?;
+    let mut list_items: Vec<KeyValue> = Vec::new();
+    state_guard.kvp.iter().for_each(|it| {
+        list_items.push(KeyValue {
+            key: it.0.clone(),
+            value: it.1.clone(),
+        });
+    });
+    let serialized = serde_json::to_string(&list_items).ok()?;
+    Some(Response::new_from_data(Some(Data::new(serialized, true, None)), 201).format_response())
+}
 fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
     match serde_json::from_str::<KeyValue>(request.body.unwrap().as_str()) {
         Ok(parsed_body) => {
