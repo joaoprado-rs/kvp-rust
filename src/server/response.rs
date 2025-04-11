@@ -8,18 +8,21 @@ pub struct Response {
 #[derive(Serialize, Deserialize, Debug)]
 struct Data {
     message: String,
+    success: bool,
+    error: Option<Error>,
 }
 #[derive(Serialize, Deserialize, Debug)]
 struct Error {
+    message: String,
     reason: String,
 }
-
-struct Errors {
-    errors: Vec<Error>,
-}
-
 impl Response {
     pub fn new(content: Option<String>, code: u16) -> Self {
+        Response { content, code }
+    }
+
+    pub fn new_from_data(data: Option<Data>, code: u16) -> Self {
+        let content = data.unwrap().to_string();
         Response { content, code }
     }
 
@@ -56,8 +59,8 @@ impl Response {
 }
 
 impl Error {
-    fn new(reason: String) -> Self {
-        Error { reason }
+    fn new(reason: String, message: String) -> Self {
+        Error { reason, message }
     }
     fn to_string(&self) -> String {
         let str = serde_json::to_string(&self);
@@ -66,8 +69,12 @@ impl Error {
 }
 
 impl Data {
-    fn new(message: String) -> Self {
-        Data { message }
+    fn new(message: String, success: bool, error: Option<Error>) -> Self {
+        Data {
+            message,
+            success,
+            error,
+        }
     }
     fn to_string(&self) -> String {
         return serde_json::to_string(&self).unwrap();

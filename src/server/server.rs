@@ -10,7 +10,7 @@ use crate::server::{response::Response, state::State};
 pub struct Server {
     host: String,
     port: String,
-    kvp: Arc<Mutex<State>>,
+    pub kvp: Arc<Mutex<State>>,
 }
 
 impl Server {
@@ -30,7 +30,7 @@ impl Server {
             match stream {
                 Ok(stream) => {
                     println!("Connection stablished successfully");
-                    Self::handle_connection(stream);
+                    Self::handle_connection(stream, Arc::clone(&self.kvp));
                 }
                 Err(err) => {
                     println!(
@@ -42,7 +42,7 @@ impl Server {
         }
     }
 
-    fn handle_connection(mut stream: TcpStream) {
+    fn handle_connection(mut stream: TcpStream, state: Arc<Mutex<State>>) {
         let mut buffer = [0; 1024];
         let mut request = String::new();
 
@@ -59,7 +59,7 @@ impl Server {
                         return;
                     }
                 };
-                let response = match get_route_and_execute(parsed_request) {
+                let response = match get_route_and_execute(parsed_request, state) {
                     Some(res) => res,
                     None => {
                         println!("An error has occurred while executing the request...");

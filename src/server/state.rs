@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 pub struct State {
-    kvp: HashMap<String, String>,
+    pub kvp: HashMap<String, String>,
 }
 
 impl State {
