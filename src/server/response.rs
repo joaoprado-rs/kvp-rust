@@ -1,28 +1,48 @@
 use serde::{Deserialize, Serialize};
 
-pub struct Response {
-    content: Option<String>,
-    code: u16,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
-struct Data {
+pub struct Data {
     message: String,
     success: bool,
     error: Option<Error>,
 }
 #[derive(Serialize, Deserialize, Debug)]
-struct Error {
+pub struct Error {
     message: String,
     reason: String,
 }
+
+impl Error {
+    pub fn new(reason: String, message: String) -> Self {
+        Error { reason, message }
+    }
+}
+
+impl Data {
+    pub fn new(message: String, success: bool, error: Option<Error>) -> Self {
+        Data {
+            message,
+            success,
+            error,
+        }
+    }
+    fn to_string(&self) -> String {
+        return serde_json::to_string(&self).unwrap();
+    }
+}
+
+pub struct Response {
+    content: Option<String>,
+    code: u16,
+}
+
 impl Response {
     pub fn new(content: Option<String>, code: u16) -> Self {
         Response { content, code }
     }
 
     pub fn new_from_data(data: Option<Data>, code: u16) -> Self {
-        let content = data.unwrap().to_string();
+        let content = data.map(|d| d.to_string());
         Response { content, code }
     }
 
@@ -51,32 +71,11 @@ impl Response {
 
             404 => "404 Not Found",
 
+            409 => "409 Conflict",
+
             500 => "500 Internal Server Error",
 
             _ => "500 Internal Server Error",
         }
-    }
-}
-
-impl Error {
-    fn new(reason: String, message: String) -> Self {
-        Error { reason, message }
-    }
-    fn to_string(&self) -> String {
-        let str = serde_json::to_string(&self);
-        str.unwrap()
-    }
-}
-
-impl Data {
-    fn new(message: String, success: bool, error: Option<Error>) -> Self {
-        Data {
-            message,
-            success,
-            error,
-        }
-    }
-    fn to_string(&self) -> String {
-        return serde_json::to_string(&self).unwrap();
     }
 }

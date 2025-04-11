@@ -10,12 +10,4 @@ impl State {
             kvp: HashMap::new(),
         }
     }
-
-    fn set(&mut self, key: String, value: String) -> Option<String> {
-        self.kvp.insert(key, value)
-    }
-
-    fn get(&self, key: &str) -> Option<String> {
-        self.kvp.get(key).cloned()
-    }
 }
