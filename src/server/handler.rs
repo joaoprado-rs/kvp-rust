@@ -12,7 +12,7 @@ use super::{
 
 pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<String> {
     if req.path == "/list" && req.method == "GET" {
-        return list_kvp(req, state);
+        return list_kvp(state);
     } else if req.path == "/get/{key}" && req.method == "GET" {
         return Some(Response::new(None, 404).format_response());
     } else if req.path == "/set" && req.method == "POST" {
@@ -24,8 +24,8 @@ pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<S
     }
 }
 
-fn list_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
-    let mut state_guard = state.lock().ok()?;
+fn list_kvp(state: Arc<Mutex<State>>) -> Option<String> {
+    let state_guard = state.lock().ok()?;
     let mut list_items: Vec<KeyValue> = Vec::new();
     state_guard.kvp.iter().for_each(|it| {
         list_items.push(KeyValue {
