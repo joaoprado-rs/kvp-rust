@@ -4,7 +4,7 @@ use std::{
 };
 
 use super::{
-    request::{self, Request},
+    request::Request,
     response::{Data, Error, Response},
     schema::KeyValue,
     state::State,
@@ -33,8 +33,14 @@ fn list_kvp(state: Arc<Mutex<State>>) -> Option<String> {
             value: it.1.clone(),
         });
     });
-    let serialized = serde_json::to_string(&list_items).ok()?;
-    Some(Response::new_from_data(Some(Data::new(serialized, true, None)), 201).format_response())
+    let serialized = serde_json::to_value(&list_items).ok()?;
+    Some(
+        Response::new_from_data(
+            Some(Data::new(String::new(), true, None, Some(serialized))),
+            200,
+        )
+        .format_response(),
+    )
 }
 fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
     match serde_json::from_str::<KeyValue>(request.body.unwrap().as_str()) {
@@ -48,7 +54,7 @@ fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
                     entry.insert(parsed_body.value);
                     let message = format!("{} -> {} register inserted successfully.", key, value);
                     Some(
-                        Response::new_from_data(Some(Data::new(message, true, None)), 201)
+                        Response::new_from_data(Some(Data::new(message, true, None, None)), 201)
                             .format_response(),
                     )
                 }
@@ -61,6 +67,7 @@ fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
                                 "".to_string(),
                                 false,
                                 Some(Error::new("Item already exist.".to_string(), message)),
+                                None,
                             )),
                             409,
                         )
@@ -81,6 +88,7 @@ fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
                         "".to_string(),
                         false,
                         Some(Error::new(reason.to_string(), err_msg)),
+                        None,
                     )),
                     400,
                 )

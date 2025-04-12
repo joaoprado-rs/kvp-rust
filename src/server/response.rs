@@ -5,6 +5,8 @@ pub struct Data {
     message: String,
     success: bool,
     error: Option<Error>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<serde_json::Value>, // novo campo opcional
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Error {
@@ -19,11 +21,17 @@ impl Error {
 }
 
 impl Data {
-    pub fn new(message: String, success: bool, error: Option<Error>) -> Self {
+    pub fn new(
+        message: String,
+        success: bool,
+        error: Option<Error>,
+        data: Option<serde_json::Value>,
+    ) -> Self {
         Data {
             message,
             success,
             error,
+            data,
         }
     }
     fn to_string(&self) -> String {
