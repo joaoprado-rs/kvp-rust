@@ -5,6 +5,7 @@ pub struct Request {
     pub method: String,
     pub headers: HashMap<String, String>,
     pub body: Option<String>,
+    pub param: Option<String>,
 }
 
 impl Request {
@@ -13,12 +14,14 @@ impl Request {
         method: String,
         headers: HashMap<String, String>,
         body: Option<String>,
+        param: Option<String>,
     ) -> Self {
         Request {
             path,
             method,
             headers,
             body,
+            param,
         }
     }
 
@@ -27,6 +30,7 @@ impl Request {
         let first = lines.next()?;
         let (method, path) = Self::build_method_route(first)?;
         let mut headers: HashMap<String, String> = HashMap::new();
+        let param = Self::get_route_parameters(&path);
         for line in lines.by_ref() {
             if line.is_empty() {
                 break;
@@ -64,7 +68,7 @@ impl Request {
         } else {
             None
         };
-        Some(Request::new(path, method, headers, body))
+        Some(Request::new(path, method, headers, body, param))
     }
 
     fn build_method_route(first: &str) -> Option<(String, String)> {
@@ -72,5 +76,14 @@ impl Request {
         let method = vec_line.get(0).map(|s| s.to_string())?;
         let route = vec_line.get(1).map(|s| s.to_string())?;
         Some((method, route))
+    }
+
+    fn get_route_parameters(route: &String) -> Option<String> {
+        let values: Vec<String> = route.split("/").skip(1).map(|x| x.to_string()).collect();
+        if values.len() > 0 {
+            values.first().cloned()
+        } else {
+            None
+        }
     }
 }
