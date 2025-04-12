@@ -79,7 +79,7 @@ impl Request {
     }
 
     fn get_route_parameters(route: &String) -> Option<String> {
-        let values: Vec<String> = route.split("/").skip(1).map(|x| x.to_string()).collect();
+        let values: Vec<String> = route.split("/").skip(2).map(|x| x.to_string()).collect();
         if values.len() > 0 {
             values.first().cloned()
         } else {

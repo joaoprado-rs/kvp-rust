@@ -13,8 +13,8 @@ use super::{
 pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<String> {
     if req.path == "/list" && req.method == "GET" {
         return list_kvp(state);
-    } else if req.path == "/get/{key}" && req.method == "GET" {
-        return Some(Response::new(None, 404).format_response());
+    } else if req.path.contains("/get/") && req.method == "GET" {
+        return get_single_kvp(req, state);
     } else if req.path == "/set" && req.method == "POST" {
         return set_kvp(req, state);
     } else if req.path == "/delete/{key}" && req.method == "DELETE" {
@@ -52,7 +52,8 @@ fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
             match state_guard.kvp.entry(parsed_body.key) {
                 Entry::Vacant(entry) => {
                     entry.insert(parsed_body.value);
-                    let message = format!("{} -> {} register inserted successfully.", key, value);
+                    let message =
+                        format!("'{}' => '{}' register inserted successfully.", key, value);
                     Some(
                         Response::new_from_data(Some(Data::new(message, true, None, None)), 201)
                             .format_response(),
@@ -95,5 +96,59 @@ fn set_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
                 .format_response(),
             );
         }
+    }
+}
+fn get_single_kvp(request: Request, state: Arc<Mutex<State>>) -> Option<String> {
+    if let Some(param) = request.param {
+        let state_guard = state.lock().ok()?;
+
+        if let Some(item) = state_guard.kvp.iter().find(|item| item.0 == &param) {
+            let kvp = KeyValue {
+                key: item.0.clone(),
+                value: item.1.clone(),
+            };
+            let serialized = serde_json::to_value(&kvp).ok()?;
+            Some(
+                Response::new_from_data(
+                    Some(Data::new(String::new(), true, None, Some(serialized))),
+                    200,
+                )
+                .format_response(),
+            )
+        } else {
+            return Some(
+                Response::new_from_data(
+                    Some(Data::new(
+                        "".to_string(),
+                        false,
+                        Some(Error::new(
+                            String::from("Item not found"),
+                            String::from("The item requested was not found."),
+                        )),
+                        None,
+                    )),
+                    200,
+                )
+                .format_response(),
+            );
+        }
+    } else {
+        return Some(
+            Response::new_from_data(
+                Some(Data::new(
+                    "".to_string(),
+                    false,
+                    Some(Error::new(
+                        String::from("Invalid route."),
+                        String::from(
+                            "You must insert the key in the parameter to retrieve it. /get/{key}",
+                        ),
+                    )),
+                    None,
+                )),
+                400,
+            )
+            .format_response(),
+        );
     }
 }
