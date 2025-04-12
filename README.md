@@ -1,36 +1,30 @@
-KVP Rust
-This is a server written in Rust without any HTTP crate. The project is currently under development and serves as a foundation for building a multi-threaded HTTP server with enhanced routing capabilities.
 
-Features
-Basic HTTP server implementation.
-Handles incoming TCP connections.
-Parses HTTP requests and sends basic responses.
-Planned Enhancements
-Thread Pool:
-Implement a thread pool to handle multiple connections concurrently, improving performance and scalability.
+# KVP Rust
 
-Enhanced Routing:
-Add support for more routes and dynamic route handling to serve different endpoints.
+KVP Rust is an API written in Rust without using any HTTP crate. The project is currently under development and serves as a foundation for building a multi-threaded HTTP server with enhanced routing capabilities.
 
-Improved Error Handling:
-Provide more descriptive error messages and proper HTTP status codes.
+## Features
 
-State Management:
-Introduce shared state management for handling data across multiple connections.
+- **Basic HTTP Server**: A basic implementation of an HTTP server that handles incoming TCP connections.
+- **HTTP Request Parsing**: Parses HTTP requests and sends basic responses.
 
-Current Structure
-How to Run
-Clone the repository:
+## Planned Enhancements
 
-Build and run the project:
+- **Thread Pool**: Implement a thread pool to handle multiple connections concurrently, improving performance and scalability.
+- **Enhanced Routing**: Add support for more routes and dynamic route handling to serve different endpoints.
+- **Improved Error Handling**: Provide more descriptive error messages and use appropriate HTTP status codes.
+- **State Management**: Introduce shared state management to handle data across multiple connections.
 
-The server will start listening on 127.0.0.1:7000.
+## Current Structure
 
-Example Usage
-Currently, the server is in its early stages and does not support advanced routing. You can test it by sending a basic HTTP request using tools like curl or Postman.
+- A Rust HTTP server with no external dependencies for HTTP.
+- Listens on port `7000` for TCP connections.
+- Sends dynamic responses.
 
-Contributing
-Contributions are welcome! If you'd like to contribute, please fork the repository and submit a pull request. Suggestions for improvements are also appreciated.
+## How to Run
 
-License
-This project is licensed under the MIT License. See the LICENSE file for details.
+1. Clone the repository:
+   
+   ```bash
+   git clone https://github.com/username/KVP-Rust.git
+   cd KVP-Rust
