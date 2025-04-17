@@ -9,9 +9,11 @@ use super::{
     schema::KeyValue,
     state::State,
 };
-
+/**
+ * Testing
+ */
 pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<String> {
-    if req.path == "/list" && req.method == "GET" {
+    if req.path == "/lsist" && req.method == "GET" {
         return list_kvp(state);
     } else if req.path.contains("/get/") && req.method == "GET" {
         return get_single_kvp(req, state);

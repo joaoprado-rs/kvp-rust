@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use librarius::warn;
+
 pub struct Request {
     pub path: String,
     pub method: String,
@@ -40,9 +42,9 @@ impl Request {
             if let Some((mut key, mut value)) = parts {
                 key = key.trim();
                 value = value.trim();
-                headers.insert(key.to_string(), value.to_string());
+                headers.insert(key.to_string().to_ascii_lowercase(), value.to_string());
             } else {
-                println!(
+                warn!(
                     "Skipping line because does not match the pattern: '{}'",
                     line.to_string()
                 );
@@ -50,12 +52,12 @@ impl Request {
         }
 
         let body = if headers
-            .get("Content-Length")
+            .get("content-length")
             .and_then(|value| value.parse::<u16>().ok())
             .filter(|&size| size > 0)
             .is_some()
             && headers
-                .get("Content-Type")
+                .get("content-type")
                 .filter(|content| content.as_str() == "application/json")
                 .is_some()
         {
