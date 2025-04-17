@@ -1,0 +1,64 @@
+name: CI & Webhook Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [ opened, reopened, synchronize, closed ]
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Rust CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: fmt check
+        run: cargo fmt -- --check
+
+      - name: clippy
+        run: cargo clippy -- -D warnings
+
+      - name: run tests
+        run: cargo test -- --nocapture
+
+  call-webhook:
+    name: Call PR Webhook
+    if: github.event_name == 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SECRET: ${{ secrets.GITHUB_WEBHOOK_SECRET }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+    steps:
+      - name: Read event payload
+        id: payload
+        run: |
+          echo "payload=$(cat $GITHUB_EVENT_PATH)" >> $GITHUB_OUTPUT
+
+      - name: Calc HMAC signature
+        id: sig
+        run: |
+          digest=$(printf '%s' "${{ steps.payload.outputs.payload }}" \
+            | openssl dgst -sha256 -hmac "$SECRET" -binary \
+            | xxd -p -c 256)
+          echo "sig=$digest" >> $GITHUB_OUTPUT
+
+      - name: Send to webhook
+        run: |
+          curl -v \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: sha256=${{ steps.sig.outputs.sig }}" \
+            --data-binary "${{ steps.payload.outputs.payload }}" \
+            "$WEBHOOK_URL"
