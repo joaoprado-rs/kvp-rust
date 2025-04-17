@@ -4,6 +4,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use librarius::{error, info};
+
 use super::{handler::get_route_and_execute, request::Request};
 use crate::server::{response::Response, state::State};
 
@@ -25,15 +27,15 @@ impl Server {
     pub fn run(&self) {
         let address = format!("{}:{}", self.host, self.port);
         let listener = TcpListener::bind(&address).unwrap();
-        println!("Server listening on {}", address);
+        info!("Server listening on {}", address);
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
-                    println!("Connection stablished successfully");
+                    info!("Connection stablished successfully");
                     Self::handle_connection(stream, Arc::clone(&self.kvp));
                 }
                 Err(err) => {
-                    println!(
+                    info!(
                         "Error while opening connection. The error is: '{}'",
                         err.to_string()
                     )
@@ -52,7 +54,7 @@ impl Server {
                 let parsed_request = match Request::build_request(&request) {
                     Some(req) => req,
                     None => {
-                        println!("An error has occurred while constructing the request...");
+                        info!("An error has occurred while constructing the request...");
                         let response = Response::new(None, 500).format_response();
                         stream.write_all(response.as_bytes()).unwrap();
                         stream.flush().unwrap();
@@ -62,7 +64,7 @@ impl Server {
                 let response = match get_route_and_execute(parsed_request, state) {
                     Some(res) => res,
                     None => {
-                        println!("An error has occurred while executing the request...");
+                        error!("An error has occurred while executing the request...");
                         let response = Response::new(None, 500).format_response();
                         stream.write_all(response.as_bytes()).unwrap();
                         stream.flush().unwrap();
@@ -73,7 +75,7 @@ impl Server {
                 stream.flush().unwrap();
             }
             Err(err) => {
-                println!(
+                error!(
                     "Error allocating memory for the stream. The error is: '{}'",
                     err.to_string()
                 );
