@@ -10,6 +10,9 @@ use super::{
     state::State,
 };
 
+/*
+Tested with: MockServer
+*/
 pub fn get_route_and_execute(req: Request, state: Arc<Mutex<State>>) -> Option<String> {
     if req.path == "/list" && req.method == "GET" {
         return list_kvp(state);
