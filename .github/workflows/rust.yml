@@ -33,10 +33,11 @@ jobs:
       SECRET: ${{ secrets.WEBHOOK_SECRET }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
     steps:
-      - name: Read event payload
+      - name: Read event payload (compact)
         id: payload
         run: |
-          echo "payload=$(cat $GITHUB_EVENT_PATH)" >> $GITHUB_OUTPUT
+          # compacta todo o JSON em uma linha e exporta em payload
+          echo "payload=$(jq -c . \"$GITHUB_EVENT_PATH\")" >> $GITHUB_OUTPUT
 
       - name: Calc HMAC signature
         id: sig
