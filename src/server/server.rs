@@ -31,7 +31,7 @@ impl Server {
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
-                    info!("Connection stablished successfully");
+                    info!("Connection established successfully");
                     Self::handle_connection(stream, Arc::clone(&self.kvp));
                 }
                 Err(err) => {
