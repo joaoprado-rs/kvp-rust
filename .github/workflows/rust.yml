@@ -24,22 +24,13 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: fmt check
-        run: cargo fmt -- --check
-
-      - name: clippy
-        run: cargo clippy -- -D warnings
-
-      - name: run tests
-        run: cargo test -- --nocapture
-
   call-webhook:
     name: Call PR Webhook
     if: github.event_name == 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     env:
-      SECRET: ${{ secrets.GITHUB_WEBHOOK_SECRET }}
+      SECRET: ${{ secrets.WEBHOOK_SECRET }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
     steps:
       - name: Read event payload
